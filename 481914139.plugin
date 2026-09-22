@@ -1,0 +1,33 @@
+#!name=防灾速报去广告
+#!desc=移除 Yahoo! 防災速報的原生广告、网页广告及推广横幅
+#!tag=去广告
+#!system=
+#!system_version=
+#!loon_version=3.4.0(962)
+#!date=2026-09-22
+
+[Rule]
+# App 原生广告
+URL-REGEX, "^https:\/\/aag\.yahooapis\.jp\/v2\/ads\/", REJECT-DROP
+
+# 内嵌网页的 Yahoo 展示广告
+URL-REGEX, "^https:\/\/yads\.yjtag\.yahoo\.co\.jp\/v2\/(tag|yda)\?", REJECT-DROP
+URL-REGEX, "^https:\/\/yads\.c\.yimg\.jp\/js\/", REJECT-DROP
+URL-REGEX, "^https:\/\/s\.yimg\.jp\/images\/(adsdk|advertising)\/", REJECT-DROP
+URL-REGEX, "^https:\/\/s\.yimg\.jp\/images\/listing\/tool\/(yads|tvp)\/", REJECT-DROP
+URL-REGEX, "^https:\/\/im\.c\.yimg\.jp\/res\/ydnstorage-media\/", REJECT-IMG
+
+# Yahoo 服务推广横幅
+URL-REGEX, "^https:\/\/mempf\.yahoo\.co\.jp\/v2\/offer\?", REJECT-DROP
+URL-REGEX, "^https:\/\/s\.yimg\.jp\/images\/weather\/promo\/banner\/", REJECT-IMG
+
+# 广告曝光、可见性及第三方监测
+URL-REGEX, "^https:\/\/apm\.yahoo\.co\.jp\/3\/[mv]\?", REJECT-DROP
+URL-REGEX, "^https:\/\/apm\.yahoo\.jp\/rd\?", REJECT-DROP
+URL-REGEX, "^https:\/\/dsb\.yahooapis\.jp\/api\/v1\/clear\.gif[^#]*[?&]p=supply_kpi(?:&|$)", REJECT-DROP
+URL-REGEX, "^https:\/\/dsb\.yahoo\.co\.jp\/api\/v1\/clear\.gif[^#]*[?&]p=mempf(?:&|$)", REJECT-DROP
+URL-REGEX, "^https:\/\/dm\.slim01\.jp\/pxd\?", REJECT-DROP
+URL-REGEX, "^https:\/\/cdn\.doubleverify\.com\/dvtp_src\.js", REJECT-DROP
+
+[MitM]
+hostname=aag.yahooapis.jp, yads.yjtag.yahoo.co.jp, yads.c.yimg.jp, s.yimg.jp, im.c.yimg.jp, mempf.yahoo.co.jp, apm.yahoo.co.jp, apm.yahoo.jp, dsb.yahooapis.jp, dsb.yahoo.co.jp, dm.slim01.jp, cdn.doubleverify.com
