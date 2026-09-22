@@ -1,33 +1,28 @@
-#!name=防灾速报去广告
-#!desc=移除 Yahoo! 防災速報的原生广告、网页广告及推广横幅
+#!name=防災速報去广告
+#!desc=移除 Yahoo! 防災速報原生广告、网页广告占位及本家 App 推广；以即时无广告响应避免页面持续“読み込み中”
+#!openUrl=https://apps.apple.com/app/id481914139
+#!author=ChatGPT 5.6 Sol max
 #!tag=去广告
 #!system=
 #!system_version=
 #!loon_version=3.4.0(962)
-#!date=2026-09-22
+#!icon=https://raw.githubusercontent.com/uranv/repository/refs/heads/main/fig/481914139x256.png
+#!date=2026-09-23 0:38:56
 
-[Rule]
-# App 原生广告
-URL-REGEX, "^https:\/\/aag\.yahooapis\.jp\/v2\/ads\/", REJECT-DROP
+[Rewrite]
+# 两个主页原生广告位：按广告位地址直接返回结构完整的 noad 数据，避免丢包后的延迟收起。
+^https:\/\/aag\.yahooapis\.jp\/v2\/ads\/elookup\?[^#]*adunit_id=Mr2mlYI9s2M4VAYA0RDdVwofzl905420(?:&|$) mock-response-body data-type=json data="eyJhZF9udW0iOjAsInJlc3BvbnNlX2NvZGUiOjIwMDAwLCJhZHVuaXRfaWQiOiJNcjJtbFlJOXMyTTRWQVlBMFJEZFZ3b2Z6bDkwNTQyMCIsImFkdHlwZSI6Im5hdGl2ZV9pbmZlZWQiLCJkZXNpZ25fY2F0ZWdvcnkiOiJiYXIiLCJsYXRlbmN5X2xvZ191cmwiOiIiLCJtZXNzYWdlIjoib2siLCJvbXNka19qcyI6IiIsInJlcXVlc3RfaWQiOiIiLCJzdGF0dXMiOiJub2FkIiwibWltcHMiOltdLCJhZHMiOltdLCJpb3Nfc3RvcmVfZG9tYWluIjoiaHR0cHM6Ly9pdHVuZXMuYXBwbGUuY29tIiwiaW9zX3N0b3JlX3VybCI6WyJpdG1zLWFwcHM6Ly9pdHVuZXMuYXBwbGUuY29tIiwiaXRtcy1hcHBzczovL2l0dW5lcy5hcHBsZS5jb20iXSwiZnJpZW5kbHlfb2JzdHJ1Y3Rpb25zIjpbXX0=" mock-data-is-base64=true status-code=200
+^https:\/\/aag\.yahooapis\.jp\/v2\/ads\/elookup\?[^#]*adunit_id=ohqAo2n3xqRnFXYzDjNuY1JLAM907200(?:&|$) mock-response-body data-type=json data="eyJhZF9udW0iOjAsInJlc3BvbnNlX2NvZGUiOjIwMDAwLCJhZHVuaXRfaWQiOiJvaHFBbzJuM3hxUm5GWFl6RGpOdVkxSkxBTTkwNzIwMCIsImFkdHlwZSI6Im5hdGl2ZV9pbmZlZWQiLCJkZXNpZ25fY2F0ZWdvcnkiOiJiYXIiLCJsYXRlbmN5X2xvZ191cmwiOiIiLCJtZXNzYWdlIjoib2siLCJvbXNka19qcyI6IiIsInJlcXVlc3RfaWQiOiIiLCJzdGF0dXMiOiJub2FkIiwibWltcHMiOltdLCJhZHMiOltdLCJpb3Nfc3RvcmVfZG9tYWluIjoiaHR0cHM6Ly9pdHVuZXMuYXBwbGUuY29tIiwiaW9zX3N0b3JlX3VybCI6WyJpdG1zLWFwcHM6Ly9pdHVuZXMuYXBwbGUuY29tIiwiaXRtcy1hcHBzczovL2l0dW5lcy5hcHBsZS5jb20iXSwiZnJpZW5kbHlfb2JzdHJ1Y3Rpb25zIjpbXX0=" mock-data-is-base64=true status-code=200
 
-# 内嵌网页的 Yahoo 展示广告
-URL-REGEX, "^https:\/\/yads\.yjtag\.yahoo\.co\.jp\/v2\/(tag|yda)\?", REJECT-DROP
-URL-REGEX, "^https:\/\/yads\.c\.yimg\.jp\/js\/", REJECT-DROP
-URL-REGEX, "^https:\/\/s\.yimg\.jp\/images\/(adsdk|advertising)\/", REJECT-DROP
-URL-REGEX, "^https:\/\/s\.yimg\.jp\/images\/listing\/tool\/(yads|tvp)\/", REJECT-DROP
-URL-REGEX, "^https:\/\/im\.c\.yimg\.jp\/res\/ydnstorage-media\/", REJECT-IMG
+# 网页推广接口
+^https:\/\/yads\.yjtag\.yahoo\.co\.jp\/v2\/(?:tag|yda)\? response-body-json-jq '{"responseType":"noad","data":{"noAdCallback":"","reason":3}}'
+^https:\/\/mempf\.yahoo\.co\.jp\/v2\/offer\? response-body-json-jq 'with_entries(.value|=(.contents=[""]|.imps_base_url=""|.offer_id=0|.aggregate_id=0))'
 
-# Yahoo 服务推广横幅
-URL-REGEX, "^https:\/\/mempf\.yahoo\.co\.jp\/v2\/offer\?", REJECT-DROP
-URL-REGEX, "^https:\/\/s\.yimg\.jp\/images\/weather\/promo\/banner\/", REJECT-IMG
+# 雨云／雷达页：广告栏元素与对应广告加载器
+^https:\/\/weather\.yahoo\.co\.jp\/weather\/zoomradar(?:\/lightning)?\/(?:\?|$) response-body-replace-regex <div\b(?=[^>]*\bclass=\x22[^\x22]*\brainRadarAd\b[^\x22]*\x22)[^>]*>\s*<div\b(?=[^>]*\bid=\x22ad1\x22)[^>]*>\s*<\/div>\s*<\/div> \x20 <script\b(?=[^>]*\bsrc=\x22https:\/\/yads\.c\.yimg\.jp\/js\/yads-async\.js(?:\?[^\x22]*)?\x22)[^>]*>\s*<\/script> \x20
 
-# 广告曝光、可见性及第三方监测
-URL-REGEX, "^https:\/\/apm\.yahoo\.co\.jp\/3\/[mv]\?", REJECT-DROP
-URL-REGEX, "^https:\/\/apm\.yahoo\.jp\/rd\?", REJECT-DROP
-URL-REGEX, "^https:\/\/dsb\.yahooapis\.jp\/api\/v1\/clear\.gif[^#]*[?&]p=supply_kpi(?:&|$)", REJECT-DROP
-URL-REGEX, "^https:\/\/dsb\.yahoo\.co\.jp\/api\/v1\/clear\.gif[^#]*[?&]p=mempf(?:&|$)", REJECT-DROP
-URL-REGEX, "^https:\/\/dm\.slim01\.jp\/pxd\?", REJECT-DROP
-URL-REGEX, "^https:\/\/cdn\.doubleverify\.com\/dvtp_src\.js", REJECT-DROP
+# 台风、气象警报、地震与灾害日历页：广告／App 推广节点及其专属脚本
+^https:\/\/typhoon\.yahoo\.co\.jp\/weather\/(?:jp\/(?:typhoon|warn|earthquake)\/|calendar\/) response-body-replace-regex <script\b(?=[^>]*\bsrc=\x22https:\/\/yads\.c\.yimg\.jp\/js\/yads-async\.js(?:\?[^\x22]*)?\x22)[^>]*>\s*<\/script> \x20 <div\b(?=[^>]*\bid=\x22ydn-top\x22)[^>]*>\s*<\/div> \x20 <script\b[^>]*>(?:(?!<\/script>)[\s\S])*\bYJ_YADS\b(?:(?!<\/script>)[\s\S])*<\/script> \x20 <aside\b[^>]*>\s*<p\b[^>]*>\s*<a\b(?=[^>]*\bid=\x22s_iphone_(?:typhoon|warn|earthquake)_banner_a\x22)[^>]*>[\s\S]*?<\/a>\s*<\/p>\s*<\/aside> \x20 <script\b[^>]*>(?:(?!<\/script>)[\s\S])*\bs_iphone_(?:typhoon|warn|earthquake)_banner_(?:a|img)\b(?:(?!<\/script>)[\s\S])*<\/script> \x20 <div\b(?=[^>]*\bid=\x22apywthdl\x22)[^>]*>[\s\S]*?<!--\s*\/\.promoApp\s*-->[\s\S]*?<\/aside>\s*<\/div> \x20 <div\b(?=[^>]*\bclass=\x22[^\x22]*\bfooterPromo\b[^\x22]*\x22)[^>]*>[\s\S]*?<\/a>\s*<\/div> \x20
 
 [MitM]
-hostname=aag.yahooapis.jp, yads.yjtag.yahoo.co.jp, yads.c.yimg.jp, s.yimg.jp, im.c.yimg.jp, mempf.yahoo.co.jp, apm.yahoo.co.jp, apm.yahoo.jp, dsb.yahooapis.jp, dsb.yahoo.co.jp, dm.slim01.jp, cdn.doubleverify.com
+hostname=aag.yahooapis.jp, yads.yjtag.yahoo.co.jp, mempf.yahoo.co.jp, weather.yahoo.co.jp, typhoon.yahoo.co.jp
